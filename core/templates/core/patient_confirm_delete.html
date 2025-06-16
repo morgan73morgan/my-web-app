@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="card border-danger">
+        <div class="card-header bg-danger text-white">
+            <h4>{% trans "Подтверждение удаления пациента" %}</h4>
+        </div>
+        <div class="card-body">
+            <p>{% trans "Вы уверены, что хотите удалить этого пациента?" %}</p>
+            <ul>
+                <li><strong>{% trans "ФИО" %}:</strong> {{ object.get_full_name }}</li>
+                <li><strong>{% trans "Дата рождения" %}:</strong> {{ object.date_of_birth }}</li>
+                <li><strong>{% trans "Телефон" %}:</strong> {{ object.phone_number }}</li>
+            </ul>
+            <form method="post">{% csrf_token %}
+                <a href="{{ object.get_absolute_url|default:'/patients/' }}" class="btn btn-secondary">{% trans "Отмена" %}</a>
+                <button type="submit" class="btn btn-danger">{% trans "Удалить" %}</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

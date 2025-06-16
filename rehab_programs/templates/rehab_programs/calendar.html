@@ -1,0 +1,176 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Календарь расписания{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Календарь расписания</h1>
+    <div class="d-flex align-items-center gap-3">
+        <div>
+            <label for="specialistFilter" class="form-label me-2 mb-0">Специалист:</label>
+            <select id="specialistFilter" class="form-select filter-select" style="width: 200px;" title="Выберите сотрудника для фильтрации расписания">
+                <option value="" selected disabled hidden>Выбрать специалиста...</option>
+                <option value="">Все</option>
+                {% for specialist in specialists %}
+                    <option value="{{ specialist.pk }}">{{ specialist.get_full_name|default:specialist.username }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label for="patientFilter" class="form-label me-2 mb-0">Пациент:</label>
+            <select id="patientFilter" class="form-select filter-select" style="width: 200px;" title="Выберите пациента для фильтрации расписания">
+                <option value="" selected disabled hidden>Выбрать пациента...</option>
+                <option value="">Все</option>
+                {% for patient in patients %}
+                    <option value="{{ patient.pk }}">{{ patient.get_full_name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button id="clearFilters" class="btn btn-outline-secondary ms-2" title="Сбросить фильтры">
+            <i class="fas fa-undo"></i> Сбросить фильтры
+        </button>
+    </div>
+</div>
+<style>
+    .filter-select.active {
+        border: 2px solid #0d6efd;
+        box-shadow: 0 0 0 0.2rem rgba(13,110,253,.25);
+        background: #e7f1ff;
+    }
+</style>
+
+<div class="mb-3 d-flex gap-2">
+    <a href="{% url 'rehab_programs:scheduled_activity_create' %}" class="btn btn-success">Добавить действие</a>
+    <button id="printSchedule" class="btn btn-outline-primary" title="Распечатать текущее расписание">
+        <i class="fas fa-print"></i> Распечатать расписание
+    </button>
+    <button id="sendToEmployee" class="btn btn-outline-info" title="Отправить расписание сотруднику">
+        <i class="fas fa-envelope"></i> Отправить сотруднику
+    </button>
+</div>
+<div id='calendar' class="card shadow-sm p-3"></div>
+
+<!-- Модальное окно для отправки расписания сотруднику -->
+<div class="modal fade" id="sendScheduleModal" tabindex="-1" aria-labelledby="sendScheduleModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="sendScheduleModalLabel">Отправить расписание сотруднику</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="sendScheduleForm">
+          <div class="mb-3">
+            <label for="employeeEmail" class="form-label">Email сотрудника</label>
+            <input type="email" class="form-control" id="employeeEmail" placeholder="Введите email" required>
+          </div>
+          <div class="mb-3">
+            <label for="scheduleMessage" class="form-label">Комментарий (необязательно)</label>
+            <textarea class="form-control" id="scheduleMessage" rows="2" placeholder="Сообщение к расписанию"></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary">Отправить</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js'></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    var calendarEl = document.getElementById('calendar');
+    var specialistFilter = document.getElementById('specialistFilter');
+    var patientFilter = document.getElementById('patientFilter');
+
+    var calendar = new FullCalendar.Calendar(calendarEl, {
+      initialView: 'dayGridMonth',
+      headerToolbar: {
+        left: 'prev,next today',
+        center: 'title',
+        right: 'dayGridMonth,timeGridWeek,timeGridDay'
+      },
+      events: {
+          url: '{% url "rehab_programs:all_activities_api" %}',
+          extraParams: function() { // a function that returns an object
+            return {
+              specialist_id: specialistFilter.value,
+              patient_id: patientFilter.value
+            };
+          }
+      },
+      eventClick: function(info) {
+        // Перейти на страницу редактирования действия
+        info.jsEvent.preventDefault();
+        if (info.event.url) {
+          window.location.href = info.event.url.replace('programs/', 'programs/activity/') + 'edit/';
+        }
+      },
+      locale: 'ru',
+      buttonText: {
+          today:    'Сегодня',
+          month:    'Месяц',
+          week:     'Неделя',
+          day:      'День',
+      }
+    });
+
+    function refetchEvents() {
+        calendar.refetchEvents();
+    }
+
+        // Взаимоисключающие фильтры
+    specialistFilter.addEventListener('change', function() {
+      if (specialistFilter.value) {
+        patientFilter.value = '';
+        specialistFilter.classList.add('active');
+        patientFilter.classList.remove('active');
+      } else {
+        specialistFilter.classList.remove('active');
+      }
+      refetchEvents();
+    });
+    patientFilter.addEventListener('change', function() {
+      if (patientFilter.value) {
+        specialistFilter.value = '';
+        patientFilter.classList.add('active');
+        specialistFilter.classList.remove('active');
+      } else {
+        patientFilter.classList.remove('active');
+      }
+      refetchEvents();
+    });
+    document.getElementById('clearFilters').addEventListener('click', function() {
+      specialistFilter.value = '';
+      patientFilter.value = '';
+      specialistFilter.classList.remove('active');
+      patientFilter.classList.remove('active');
+      refetchEvents();
+    });
+
+    calendar.render();
+
+    // Печать расписания
+    document.getElementById('printSchedule').addEventListener('click', function() {
+      window.print();
+    });
+    // Открытие модального окна отправки
+    document.getElementById('sendToEmployee').addEventListener('click', function() {
+      var modal = new bootstrap.Modal(document.getElementById('sendScheduleModal'));
+      modal.show();
+    });
+    // Заглушка отправки формы
+    document.getElementById('sendScheduleForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      var email = document.getElementById('employeeEmail').value;
+      var message = document.getElementById('scheduleMessage').value;
+      // TODO: Реализовать отправку на сервер
+      alert('Расписание будет отправлено на ' + email + (message ? (' с сообщением: ' + message) : ''));
+      var modal = bootstrap.Modal.getInstance(document.getElementById('sendScheduleModal'));
+      modal.hide();
+    });
+  });
+</script>
+{% endblock %}

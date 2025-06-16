@@ -1,0 +1,73 @@
+# publish-github.ps1
+
+Write-Host "🚀 Автоматизация загрузки проекта на GitHub" -ForegroundColor Green
+
+# === Настройки ===
+$username = "morgan73morgan"
+$token = "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" # ⚠️ Не публикуй его в интернете!
+$defaultBranch = "main"
+
+# === Ввод данных ===
+$repoName = Read-Host "Введите название репозитория на GitHub"
+$createGitignore = Read-Host "Создать .gitignore? (y/n)"
+
+# === Проверка наличия git ===
+if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
+    Write-Host "❌ Git не установлен или не добавлен в PATH" -ForegroundColor Red
+    exit
+}
+
+# === Создание .gitignore ===
+if ($createGitignore -eq 'y') {
+    $gitignoreTemplate = @"
+# Windows temp files
+Thumbs.db
+desktop.ini
+*.tmp
+
+# Visual Studio / JetBrains IDE
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+.idea/
+*.iml
+
+# Node.js / npm
+node_modules/
+dist/
+build/
+.env
+
+# Python
+__pycache__
+*.pyc
+env/
+venv/
+
+# Log files
+*.log
+
+# Backup files
+*.bak
+*.swp
+"@    
+    Set-Content -Path ".\.gitignore" -Value $gitignoreTemplate
+    Write-Host "📄 .gitignore создан" -ForegroundColor Green
+}
+
+# === Инициализация Git ===
+git init
+git add .
+git commit -m "Первый коммит"
+
+# === Привязка к удалённому репозиторию ===
+$remoteUrl = "https://$username:$token@github.com/$username/$repoName.git" 
+git remote add origin $remoteUrl
+
+# === Отправка на GitHub ===
+git branch -M $defaultBranch
+git push -u origin $defaultBranch
+
+Write-Host "🎉 Проект успешно загружен на GitHub!" -ForegroundColor Green
+Write-Host "🔗 https://github.com/$username/$repoName"  -ForegroundColor Cyan

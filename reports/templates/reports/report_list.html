@@ -1,0 +1,54 @@
+{% extends 'core/base_dashboard.html' %}
+{% block title %}Отчёты{% endblock %}
+
+{% block page_title %}
+<h1>Отчёты</h1>
+{% endblock %}
+
+{% block page_content %}
+<div class="mb-3 d-flex justify-content-between align-items-center">
+    <form method="get" class="d-flex gap-2">
+        <input type="text" name="q" class="form-control" placeholder="Поиск по названию...">
+        <button type="submit" class="btn btn-outline-primary"><i class="fas fa-search"></i> Найти</button>
+    </form>
+    <div>
+        <a href="{% url 'reports:report_export_csv' %}" class="btn btn-outline-success"><i class="fas fa-file-csv"></i> Экспорт CSV</a>
+        <button onclick="window.print()" class="btn btn-outline-secondary"><i class="fas fa-print"></i> Печать</button>
+    </div>
+</div>
+<table class="table table-bordered table-hover">
+    <thead class="table-light">
+        <tr>
+            <th>ID</th>
+            <th>Название</th>
+            <th>Дата</th>
+            <th>Автор</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for report in reports %}
+        <tr>
+            <td>{{ report.id }}</td>
+            <td>{{ report.title }}</td>
+            <td>{{ report.created_at|date:'d.m.Y H:i' }}</td>
+            <td>{{ report.author }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4" class="text-center">Нет отчётов</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+<nav>
+    <ul class="pagination">
+        {% if reports.has_previous %}
+            <li class="page-item"><a class="page-link" href="?page={{ reports.previous_page_number }}">&laquo;</a></li>
+        {% endif %}
+        {% for num in reports.paginator.page_range %}
+            <li class="page-item {% if reports.number == num %}active{% endif %}"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
+        {% endfor %}
+        {% if reports.has_next %}
+            <li class="page-item"><a class="page-link" href="?page={{ reports.next_page_number }}">&raquo;</a></li>
+        {% endif %}
+    </ul>
+</nav>
+{% endblock %}

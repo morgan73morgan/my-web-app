@@ -1,0 +1,67 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Программа реабилитации для {{ program.patient }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>{{ program.get_program_type_display }} программа для {{ program.patient }}</h1>
+    <a href="{% url 'core:patient_detail' program.patient.pk %}" class="btn btn-secondary">Назад к карте пациента</a>
+</div>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-header">
+        <h5>Детали программы</h5>
+    </div>
+    <div class="card-body">
+        <p><strong>Цель:</strong> {{ program.goal }}</p>
+        <p><strong>Сроки:</strong> с {{ program.start_date|date:"d.m.Y" }} по {{ program.end_date|date:"d.m.Y" }}</p>
+        <p><strong>Статус:</strong> {{ program.get_status_display }}</p>
+        <p><strong>Ведущий специалист:</strong> {{ program.specialist|default:"Не назначен" }}</p>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-header">
+        <h5>План процедур</h5>
+    </div>
+    <div class="card-body">
+        <h6 class="card-title">Добавить процедуру в план</h6>
+        <form action="{% url 'rehab_programs:add_scheduled_activity' program.pk %}" method="post" class="mb-4">
+            {% csrf_token %}
+            <div class="row g-3">
+                <div class="col-md-4">{{ form.activity.label_tag }}{{ form.activity }}</div>
+                <div class="col-md-4">{{ form.specialist.label_tag }}{{ form.specialist }}</div>
+                <div class="col-md-4">{{ form.scheduled_date.label_tag }}{{ form.scheduled_date }}</div>
+                <div class="col-12">{{ form.specialist_notes.label_tag }}{{ form.specialist_notes }}</div>
+            </div>
+            <button type="submit" class="btn btn-primary mt-3">Добавить в план</button>
+        </form>
+
+        <h6 class="card-title">Запланированные процедуры</h6>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Дата и время</th>
+                    <th>Процедура</th>
+                    <th>Статус</th>
+                    <th>Заметки</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for activity in scheduled_activities %}
+                <tr>
+                    <td>{{ activity.scheduled_date|date:"d.m.Y H:i" }}</td>
+                    <td>{{ activity.activity.name }}</td>
+                    <td>{{ activity.get_status_display }}</td>
+                    <td>{{ activity.specialist_notes|default:"-" }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" class="text-center">Процедуры еще не запланированы.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

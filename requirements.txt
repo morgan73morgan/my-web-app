@@ -1,0 +1,19 @@
+Django>=5.0
+# API и интеграция
+ djangorestframework
+ fhir.resources
+ hl7apy
+ zeep
+ requests
+# Безопасность и аудит
+ django-axes
+ django-auditlog
+ django-guardian
+ cryptography
+ python-dotenv
+# БД и продакшн
+ psycopg2-binary
+ gunicorn
+# ГОСТ-криптография (опционально, если требуется)
+# python-gostcrypto
+python-dotenv

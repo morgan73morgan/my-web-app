@@ -1,0 +1,309 @@
+{% extends 'services/base.html' %}
+{% load widget_tweaks %}
+
+{% block page_title %}{% if form.instance.pk %}Редактирование услуги{% else %}Добавление услуги{% endif %}{% endblock %}
+
+{% block page_actions %}
+<a href="{% if form.instance.pk %}{% url 'services:service_detail' form.instance.pk %}{% else %}{% url 'services:service_list' %}{% endif %}" 
+   class="btn btn-sm btn-outline-secondary">
+    <i class="fas fa-arrow-left me-1"></i> Назад
+</a>
+{% endblock %}
+
+{% block content_inner %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">{% if form.instance.pk %}Редактирование услуги{% else %}Добавление новой услуги{% endif %}</h5>
+            </div>
+            <form method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+                <div class="card-body">
+                    {% csrf_token %}
+                    
+                    {% if form.non_field_errors %}
+                    <div class="alert alert-danger">
+                        {% for error in form.non_field_errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="{{ form.name.id_for_label }}" class="form-label">
+                                {{ form.name.label }}
+                                {% if form.name.field.required %}<span class="text-danger">*</span>{% endif %}
+                            </label>
+                            {% render_field form.name class="form-control" %}
+                            {% if form.name.help_text %}
+                                <div class="form-text">{{ form.name.help_text }}</div>
+                            {% endif %}
+                            {% if form.name.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.name.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="{{ form.code.id_for_label }}" class="form-label">
+                                {{ form.code.label }}
+                                {% if form.code.field.required %}<span class="text-danger">*</span>{% endif %}
+                            </label>
+                            {% render_field form.code class="form-control" %}
+                            {% if form.code.help_text %}
+                                <div class="form-text">{{ form.code.help_text }}</div>
+                            {% endif %}
+                            {% if form.code.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.code.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="{{ form.category.id_for_label }}" class="form-label">
+                                {{ form.category.label }}
+                                {% if form.category.field.required %}<span class="text-danger">*</span>{% endif %}
+                            </label>
+                            {% render_field form.category class="form-select" %}
+                            {% if form.category.help_text %}
+                                <div class="form-text">{{ form.category.help_text }}</div>
+                            {% endif %}
+                            {% if form.category.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.category.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="{{ form.service_type.id_for_label }}" class="form-label">
+                                {{ form.service_type.label }}
+                                {% if form.service_type.field.required %}<span class="text-danger">*</span>{% endif %}
+                            </label>
+                            {% render_field form.service_type class="form-select" %}
+                            {% if form.service_type.help_text %}
+                                <div class="form-text">{{ form.service_type.help_text }}</div>
+                            {% endif %}
+                            {% if form.service_type.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.service_type.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="{{ form.price.id_for_label }}" class="form-label">
+                                {{ form.price.label }}
+                                {% if form.price.field.required %}<span class="text-danger">*</span>{% endif %}
+                            </label>
+                            <div class="input-group">
+                                {% render_field form.price class="form-control text-end" %}
+                                <span class="input-group-text">₽</span>
+                            </div>
+                            {% if form.price.help_text %}
+                                <div class="form-text">{{ form.price.help_text }}</div>
+                            {% endif %}
+                            {% if form.price.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.price.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Статус</label>
+                            <div class="form-check form-switch mt-2">
+                                {% render_field form.is_active class="form-check-input" %}
+                                <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
+                                    Активна
+                                </label>
+                            </div>
+                            {% if form.is_active.help_text %}
+                                <div class="form-text">{{ form.is_active.help_text }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="{{ form.duration.id_for_label }}" class="form-label">
+                                {{ form.duration.label }}
+                            </label>
+                            <div class="input-group">
+                                {% render_field form.duration class="form-control text-end" %}
+                                {% render_field form.duration_unit class="form-select" %}
+                            </div>
+                            {% if form.duration.help_text %}
+                                <div class="form-text">{{ form.duration.help_text }}</div>
+                            {% endif %}
+                            {% if form.duration.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.duration.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Требования</label>
+                            <div class="form-check form-switch mt-2">
+                                {% render_field form.requires_specialist class="form-check-input" %}
+                                <label class="form-check-label" for="{{ form.requires_specialist.id_for_label }}">
+                                    Требуется специалист
+                                </label>
+                            </div>
+                            {% if form.requires_specialist.help_text %}
+                                <div class="form-text">{{ form.requires_specialist.help_text }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.description.id_for_label }}" class="form-label">
+                            {{ form.description.label }}
+                        </label>
+                        {% render_field form.description class="form-control" rows="4" %}
+                        {% if form.description.help_text %}
+                            <div class="form-text">{{ form.description.help_text }}</div>
+                        {% endif %}
+                        {% if form.description.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.description.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    {% if form.instance.pk %}
+                    <div class="mb-3">
+                        <label for="notes" class="form-label">Внутренние заметки</label>
+                        <textarea id="notes" class="form-control" rows="3" readonly>{{ form.instance.notes|default:"" }}</textarea>
+                        <div class="form-text">Для редактирования заметок перейдите на страницу услуги</div>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Поля, отмеченные <span class="text-danger">*</span>, обязательны для заполнения.
+                    </div>
+                </div>
+                <div class="card-footer bg-transparent">
+                    <div class="d-flex justify-content-between">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-1"></i> Сохранить
+                        </button>
+                        {% if form.instance.pk %}
+                        <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" 
+                                data-bs-target="#deleteModal">
+                            <i class="fas fa-trash-alt me-1"></i> Удалить
+                        </button>
+                        {% else %}
+                        <a href="{% url 'services:service_list' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-times me-1"></i> Отмена
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% if form.instance.pk %}
+<!-- Delete Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">Подтверждение удаления</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Вы уверены, что хотите удалить услугу <strong>{{ form.instance.name }}</strong>?</p>
+                {% if form.instance.appointments.exists %}
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Внимание! С этой услугой связаны записи на прием. Удаление может затронуть историю записей.
+                </div>
+                {% endif %}
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                <form action="{% url 'services:service_delete' form.instance.pk %}" method="post" class="d-inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash-alt me-1"></i> Удалить
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize form validation
+    const forms = document.querySelectorAll('.needs-validation');
+    
+    Array.from(forms).forEach(form => {
+        form.addEventListener('submit', event => {
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            
+            form.classList.add('was-validated');
+        }, false);
+    });
+    
+    // Dynamic price formatting
+    const priceField = document.getElementById('{{ form.price.id_for_label }}');
+    if (priceField) {
+        priceField.addEventListener('input', function(e) {
+            // Remove any non-digit characters except decimal point
+            let value = e.target.value.replace(/[^\d.]/g, '');
+            
+            // Ensure only one decimal point
+            const parts = value.split('.');
+            if (parts.length > 2) {
+                value = parts[0] + '.' + parts.slice(1).join('');
+            }
+            
+            // Limit to 2 decimal places
+            if (parts.length === 2 && parts[1].length > 2) {
+                value = parts[0] + '.' + parts[1].substring(0, 2);
+            }
+            
+            // Update the input value
+            e.target.value = value;
+        });
+    }
+    
+    // Toggle duration field based on service type
+    const serviceTypeField = document.getElementById('{{ form.service_type.id_for_label }}');
+    const durationGroup = document.querySelector('.form-group:has(#{{ form.duration.id_for_label }})');
+    
+    if (serviceTypeField && durationGroup) {
+        function toggleDurationField() {
+            // Show duration field for services that require time slots
+            const showDuration = ['consultation', 'procedure', 'examination'].includes(serviceTypeField.value);
+            durationGroup.style.display = showDuration ? 'block' : 'none';
+            
+            if (!showDuration) {
+                document.getElementById('{{ form.duration.id_for_label }}').value = '';
+            }
+        }
+        
+        // Initial state
+        toggleDurationField();
+        
+        // Add event listener for changes
+        serviceTypeField.addEventListener('change', toggleDurationField);
+    }
+});
+</script>
+{% endblock %}

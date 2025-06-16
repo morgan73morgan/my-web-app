@@ -1,0 +1,20 @@
+body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: #f8f9fa;
+    color: #222;
+    margin: 0;
+    padding: 0;
+}
+h1, h2, h3, h4, h5 {
+    color: #1565c0;
+}
+.card {
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(21, 101, 192, 0.06);
+}
+.btn-primary, .btn-success, .btn-warning, .btn-secondary {
+    border-radius: 6px;
+}
+.table-striped > tbody > tr:nth-of-type(odd) {
+    background-color: #f1f3f4;
+}

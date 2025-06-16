@@ -1,0 +1,426 @@
+{% extends 'services/base.html' %}
+{% load static %}
+
+{% block page_title %}Каталог услуг{% endblock %}
+
+{% block page_actions %}
+<div class="btn-group me-2">
+    <a href="{% url 'services:service_add' %}" class="btn btn-sm btn-primary">
+        <i class="fas fa-plus me-1"></i> Добавить услугу
+    </a>
+</div>
+{% endblock %}
+
+{% block content_inner %}
+<div class="card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h6 class="m-0 font-weight-bold">Фильтры</h6>
+        <button class="btn btn-sm btn-link" type="button" data-bs-toggle="collapse" data-bs-target="#filtersCollapse" 
+                aria-expanded="false" aria-controls="filtersCollapse">
+            <i class="fas fa-filter"></i>
+        </button>
+    </div>
+    <div class="collapse {% if request.GET.q or request.GET.category or request.GET.service_type or request.GET.is_active %}show{% endif %}" id="filtersCollapse">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-4">
+                    <label for="id_q" class="form-label">Поиск</label>
+                    <input type="text" class="form-control" id="id_q" name="q" value="{{ request.GET.q }}" 
+                           placeholder="Название, код или описание">
+                </div>
+                <div class="col-md-3">
+                    <label for="id_category" class="form-label">Категория</label>
+                    <select class="form-select" id="id_category" name="category">
+                        <option value="">Все категории</option>
+                        {% for category in categories %}
+                            <option value="{{ category.id }}" {% if request.GET.category == category.id|stringformat:'s' %}selected{% endif %}>
+                                {{ category.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="id_service_type" class="form-label">Тип услуги</label>
+                    <select class="form-select" id="id_service_type" name="service_type">
+                        <option value="">Все типы</option>
+                        {% for value, label in service_types %}
+                            <option value="{{ value }}" {% if request.GET.service_type == value %}selected{% endif %}>
+                                {{ label }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label for="id_is_active" class="form-label">Статус</label>
+                    <select class="form-select" id="id_is_active" name="is_active">
+                        <option value="">Все</option>
+                        <option value="true" {% if request.GET.is_active == 'true' %}selected{% endif %}>Активные</option>
+                        <option value="false" {% if request.GET.is_active == 'false' %}selected{% endif %}>Неактивные</option>
+                    </select>
+                </div>
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary me-2">
+                        <i class="fas fa-search me-1"></i> Применить
+                    </button>
+                    <a href="{% url 'services:service_list' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-undo me-1"></i> Сбросить
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h6 class="m-0 font-weight-bold">Список услуг</h6>
+        <div>
+            <div class="btn-group" role="group">
+                <button id="viewToggle" type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="button" aria-pressed="false">
+                    <i class="fas fa-th-large"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Grid View -->
+    <div id="gridView" class="card-body" style="display: none;">
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+            {% for service in object_list %}
+            <div class="col">
+                <div class="card h-100">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <a href="{% url 'services:service_detail' service.pk %}" class="text-decoration-none">
+                                {{ service.name }}
+                            </a>
+                            {% if not service.is_active %}
+                                <span class="badge bg-secondary ms-2">Неактивна</span>
+                            {% endif %}
+                        </h5>
+                        <div class="text-muted small">
+                            <i class="fas fa-tag me-1"></i> {{ service.get_service_type_display }}
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <p class="card-text">
+                            {{ service.description|truncatewords:20|default:"Нет описания" }}
+                        </p>
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="h5 mb-0">{{ service.price|floatformat:2 }} ₽</span>
+                            {% if service.duration %}
+                            <span class="badge bg-light text-dark">
+                                <i class="far fa-clock me-1"></i>
+                                {{ service.duration }} {{ service.get_duration_unit_display }}
+                            </span>
+                            {% endif %}
+                        </div>
+                        {% if service.requires_specialist %}
+                        <div class="alert alert-warning p-2 mb-0 small">
+                            <i class="fas fa-user-md me-1"></i> Требуется специалист
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="card-footer bg-transparent d-flex justify-content-between">
+                        <a href="{% url 'services:appointment_add' %}?service={{ service.id }}" class="btn btn-sm btn-outline-primary">
+                            <i class="far fa-calendar-plus me-1"></i> Записаться
+                        </a>
+                        <div class="dropdown">
+                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" 
+                                    id="serviceActions{{ service.id }}" data-bs-toggle="dropdown" 
+                                    aria-expanded="false">
+                                Действия
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="serviceActions{{ service.id }}">
+                                <li>
+                                    <a class="dropdown-item" href="{% url 'services:service_edit' service.pk %}">
+                                        <i class="fas fa-edit me-2"></i>Редактировать
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="{% url 'services:appointment_add' %}?service={{ service.id }}">
+                                        <i class="far fa-calendar-plus me-2"></i>Записать на прием
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <a class="dropdown-item text-danger" href="#" 
+                                       data-bs-toggle="modal" data-bs-target="#deleteModal{{ service.id }}">
+                                        <i class="fas fa-trash-alt me-2"></i>Удалить
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Delete Modal -->
+            <div class="modal fade" id="deleteModal{{ service.id }}" tabindex="-1" 
+                 aria-labelledby="deleteModalLabel{{ service.id }}" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="deleteModalLabel{{ service.id }}">
+                                Подтверждение удаления
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <p>Вы уверены, что хотите удалить услугу <strong>{{ service.name }}</strong>?</p>
+                            {% if service.appointments.exists %}
+                            <div class="alert alert-warning">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                Внимание! С этой услугой связаны записи на прием. Удаление может затронуть историю записей.
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                            <form action="{% url 'services:service_delete' service.pk %}" method="post" class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-danger">
+                                    <i class="fas fa-trash-alt me-1"></i> Удалить
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12">
+                <div class="text-center p-5 border rounded bg-light">
+                    <i class="fas fa-concierge-bell fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">Услуги не найдены</h5>
+                    <p class="text-muted">Попробуйте изменить параметры фильтра или добавьте новую услугу</p>
+                    <a href="{% url 'services:service_add' %}" class="btn btn-primary mt-2">
+                        <i class="fas fa-plus me-1"></i> Добавить услугу
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <!-- Table View -->
+    <div id="tableView" class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Название</th>
+                    <th>Категория</th>
+                    <th>Тип</th>
+                    <th class="text-end">Цена</th>
+                    <th>Длительность</th>
+                    <th>Статус</th>
+                    <th class="text-end">Действия</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for service in object_list %}
+                <tr>
+                    <td>
+                        <a href="{% url 'services:service_detail' service.pk %}" class="text-decoration-none">
+                            {{ service.name }}
+                        </a>
+                        {% if service.code %}
+                        <div class="small text-muted">{{ service.code }}</div>
+                        {% endif %}
+                    </td>
+                    <td>{{ service.category.name|default:"-" }}</td>
+                    <td>{{ service.get_service_type_display }}</td>
+                    <td class="text-end">{{ service.price|floatformat:2 }} ₽</td>
+                    <td>
+                        {% if service.duration %}
+                            {{ service.duration }} {{ service.get_duration_unit_display }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if service.is_active %}
+                            <span class="badge bg-success">Активна</span>
+                        {% else %}
+                            <span class="badge bg-secondary">Неактивна</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-end">
+                        <div class="btn-group btn-group-sm">
+                            <a href="{% url 'services:service_detail' service.pk %}" 
+                               class="btn btn-sm btn-outline-primary" title="Просмотр">
+                                <i class="far fa-eye"></i>
+                            </a>
+                            <a href="{% url 'services:service_edit' service.pk %}" 
+                               class="btn btn-sm btn-outline-secondary" title="Редактировать">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <a href="{% url 'services:appointment_add' %}?service={{ service.id }}" 
+                               class="btn btn-sm btn-outline-success" title="Записать на прием">
+                                <i class="far fa-calendar-plus"></i>
+                            </a>
+                            <button type="button" class="btn btn-sm btn-outline-danger" 
+                                    data-bs-toggle="modal" data-bs-target="#deleteModal{{ service.id }}" 
+                                    title="Удалить">
+                                <i class="far fa-trash-alt"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                
+                <!-- Delete Modal for Table View -->
+                <div class="modal fade" id="deleteModal{{ service.id }}" tabindex="-1" 
+                     aria-labelledby="deleteModalLabel{{ service.id }}" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="deleteModalLabel{{ service.id }}">
+                                    Подтверждение удаления
+                                </h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <p>Вы уверены, что хотите удалить услугу <strong>{{ service.name }}</strong>?</p>
+                                {% if service.appointments.exists %}
+                                <div class="alert alert-warning">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>
+                                    Внимание! С этой услугой связаны записи на прием. Удаление может затронуть историю записей.
+                                </div>
+                                {% endif %}
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                                <form action="{% url 'services:service_delete' service.pk %}" method="post" class="d-inline">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-danger">
+                                        <i class="fas fa-trash-alt me-1"></i> Удалить
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center py-4">
+                        <i class="fas fa-concierge-bell fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">Услуги не найдены</p>
+                        <a href="{% url 'services:service_add' %}" class="btn btn-primary">
+                            <i class="fas fa-plus me-2"></i>Добавить услугу
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    {% if is_paginated %}
+    <div class="card-footer">
+        <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-center mb-0">
+                {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" 
+                           aria-label="First">
+                            <span aria-hidden="true">&laquo;&laquo;</span>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" 
+                           aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">&laquo;&laquo;</span>
+                    </li>
+                    <li class="page-item disabled">
+                        <span class="page-link">&laquo;</span>
+                    </li>
+                {% endif %}
+                
+                {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                        <li class="page-item active">
+                            <span class="page-link">{{ num }}</span>
+                        </li>
+                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                {{ num }}
+                            </a>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" 
+                           aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" 
+                           aria-label="Last">
+                            <span aria-hidden="true">&raquo;&raquo;</span>
+                        </a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">&raquo;</span>
+                    </li>
+                    <li class="page-item disabled">
+                        <span class="page-link">&raquo;&raquo;</span>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Toggle between grid and table view
+    const viewToggle = document.getElementById('viewToggle');
+    const gridView = document.getElementById('gridView');
+    const tableView = document.getElementById('tableView');
+    
+    // Check for saved view preference or default to table view
+    const savedView = localStorage.getItem('serviceView') || 'table';
+    
+    function setView(view) {
+        if (view === 'grid') {
+            gridView.style.display = 'block';
+            tableView.style.display = 'none';
+            viewToggle.classList.add('active');
+            localStorage.setItem('serviceView', 'grid');
+        } else {
+            gridView.style.display = 'none';
+            tableView.style.display = 'block';
+            viewToggle.classList.remove('active');
+            localStorage.setItem('serviceView', 'table');
+        }
+    }
+    
+    // Set initial view
+    setView(savedView);
+    
+    // Toggle view on button click
+    viewToggle.addEventListener('click', function() {
+        const isActive = this.getAttribute('aria-pressed') === 'true';
+        setView(isActive ? 'table' : 'grid');
+    });
+    
+    // Initialize tooltips
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+});
+</script>
+{% endblock %}

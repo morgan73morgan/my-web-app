@@ -1,0 +1,120 @@
+{% extends "core/base.html" %}
+{% load i18n static %}
+
+{% block page_title %}
+    {{ page_title }}
+{% endblock %}
+
+{% block content_inner %}
+<div class="container-fluid">
+    <!-- Page-header -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">{% trans "Document Management" %}</h1>
+        {% if perms.documents.add_document %}
+        <a href="{% url 'documents:document_create' %}" class="btn btn-primary btn-sm shadow-sm">
+            <i class="fas fa-plus fa-sm text-white-50"></i> {% trans "Upload New Document" %}
+        </a>
+        {% endif %}
+    </div>
+
+    <!-- Filter and Search Form -->
+    <div class="card shadow mb-4">
+        <div class="card-body">
+            <form method="get" action="{% url 'documents:document_list' %}" class="form-inline">
+                <div class="form-group mr-3 mb-2">
+                    <input type="text" name="q" class="form-control" placeholder="{% trans 'Search...' %}" value="{{ request.GET.q }}">
+                </div>
+                <div class="form-group mr-3 mb-2">
+                    <select name="category" class="form-control">
+                        <option value="">{% trans "All Categories" %}</option>
+                        {% for category in categories %}
+                            <option value="{{ category.pk }}" {% if request.GET.category|add:"0" == category.pk %}selected{% endif %}>{{ category.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary mb-2"><i class="fas fa-search"></i> {% trans "Filter" %}</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Documents Table -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">{% trans "Document List" %}</h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th>{% trans "Title" %}</th>
+                            <th>{% trans "Patient" %}</th>
+                            <th>{% trans "Category" %}</th>
+                            <th>{% trans "Status" %}</th>
+                            <th>{% trans "Uploaded By" %}</th>
+                            <th>{% trans "Date" %}</th>
+                            <th>{% trans "Actions" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for doc in documents %}
+                        <tr>
+                            <td><a href="{% url 'documents:document_detail' doc.pk %}">{{ doc.title }}</a></td>
+                            <td>{{ doc.patient.get_full_name }}</td>
+                            <td><span class="badge badge-secondary">{{ doc.category.name|default:"-" }}</span></td>
+                            <td>
+                                <span class="badge 
+                                    {% if doc.status == 'approved' %}badge-success
+                                    {% elif doc.status == 'pending_approval' %}badge-warning
+                                    {% elif doc.status == 'archived' %}badge-dark
+                                    {% else %}badge-info{% endif %}">
+                                    {{ doc.get_status_display }}
+                                </span>
+                            </td>
+                            <td>{{ doc.uploaded_by.username|default:"System" }}</td>
+                            <td>{{ doc.created_at|date:"d.m.Y H:i" }}</td>
+                            <td>
+                                <a href="{% url 'documents:document_detail' doc.pk %}" class="btn btn-info btn-sm" title="{% trans 'View' %}"><i class="fas fa-eye"></i></a>
+                                {% if perms.documents.change_document %}
+                                <a href="{% url 'documents:document_update' doc.pk %}" class="btn btn-warning btn-sm" title="{% trans 'Edit' %}">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                {% endif %}
+                                {% if perms.documents.delete_document %}
+                                <a href="{% url 'documents:document_delete' doc.pk %}" class="btn btn-danger btn-sm" title="{% trans 'Delete' %}">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center">{% trans "No documents found." %}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            {% if is_paginated %}
+            <nav>
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                        <li class="page-item"><a class="page-link" href="?page=1&{{ request.GET.urlencode }}">&laquo; {% trans 'first' %}</a></li>
+                        <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}&{{ request.GET.urlencode }}">{% trans 'previous' %}</a></li>
+                    {% endif %}
+
+                    <li class="page-item disabled"><span class="page-link">{% trans 'Page' %} {{ page_obj.number }} {% trans 'of' %} {{ page_obj.paginator.num_pages }}.</span></li>
+
+                    {% if page_obj.has_next %}
+                        <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}&{{ request.GET.urlencode }}">{% trans 'next' %}</a></li>
+                        <li class="page-item"><a class="page-link" href="?page={{ page_obj.paginator.num_pages }}&{{ request.GET.urlencode }}">{% trans 'last' %} &raquo;</a></li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

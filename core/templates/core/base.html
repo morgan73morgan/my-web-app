@@ -1,0 +1,199 @@
+{% load static %}
+{% load custom_filters %}
+{# Ensure the template tag is properly loaded #}
+{% load custom_filters %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}StatReaMed - Реабилитационный центр{% endblock %}</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='48' fill='%234e73df'/><path d='M30 50h40M50 30v40' stroke='white' stroke-width='10' stroke-linecap='round'/></svg>">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .navbar-brand {
+            display: flex;
+            align-items: center;
+            font-weight: 700;
+            font-size: 1.5rem;
+        }
+        .navbar-brand img {
+            height: 40px;
+            margin-right: 10px;
+        }
+        .navbar {
+            padding: 0.5rem 1rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,.1);
+        }
+        .navbar-nav .nav-link {
+            padding: 0.5rem 1rem;
+            font-weight: 500;
+        }
+        .dropdown-menu {
+            border: none;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        }
+        .dropdown-item:active {
+            background-color: #4e73df;
+            color: white;
+        }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm">
+    <div class="container">
+        <a class="navbar-brand" href="{% url 'core:dashboard' %}">
+            <div class="logo-container me-2" style="width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center;">
+                <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="16" cy="16" r="15" stroke="white" stroke-width="2"/>
+                    <path d="M9 16H23M16 9V23" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+            </div>
+            <span>StatReaMed</span>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'core:dashboard' %}">Главная</a>
+                </li>
+                {% if user.is_authenticated %}
+                    {% if user.is_staff %}
+                        <!-- Ссылки для персонала -->
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'core:patient_list' %}">Пациенты</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'rehab_programs:calendar' %}">Календарь</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'inpatient:dashboard' %}">
+                                <i class="fas fa-fw fa-procedures"></i>
+                                <span>Стационар</span></a>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="servicesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-hand-holding-usd me-1"></i>
+                                <span>Платные услуги</span>
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="servicesDropdown">
+                                <li><a class="dropdown-item" href="{% url 'services:dashboard' %}"><i class="fas fa-chart-bar me-1"></i> Дашборд</a></li>
+                                <li><a class="dropdown-item" href="{% url 'services:appointment_add' %}"><i class="fas fa-plus me-1"></i> Новый приём</a></li>
+                                <li><a class="dropdown-item" href="{% url 'services:contract_add' %}"><i class="fas fa-file-contract me-1"></i> Новый договор</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="{% url 'services:service_list' %}"><i class="fas fa-list me-1"></i> Все услуги</a></li>
+                                <li><a class="dropdown-item" href="{% url 'services:payment_list' %}"><i class="fas fa-ruble-sign me-1"></i> Платежи</a></li>
+                            </ul>
+                        </li>
+                        <li class="nav-item">
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="commissionsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-fw fa-gavel"></i>
+                                <span>Комиссии</span>
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="commissionsDropdown">
+                                <li><a class="dropdown-item" href="{% url 'commissions:dashboard' %}">Панель управления</a></li>
+                                <li><a class="dropdown-item" href="{% url 'commissions:calendar' %}">Календарь записей</a></li>
+                                <li><a class="dropdown-item" href="{% url 'commissions:application_add' %}">Новое обращение</a></li>
+                            </ul>
+                        </li>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'analytics:dashboard' %}">Аналитика</a>
+                        </li>
+                        <li class="nav-item dropdown">
+    <a class="nav-link dropdown-toggle" href="#" id="servicesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+        <i class="fas fa-hand-holding-usd me-1"></i>
+        <span>Платные услуги</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="servicesDropdown">
+        <li><a class="dropdown-item" href="{% url 'services:dashboard' %}"><i class="fas fa-chart-bar me-1"></i> Дашборд</a></li>
+        <li><a class="dropdown-item" href="{% url 'services:appointment_add' %}"><i class="fas fa-plus me-1"></i> Новый приём</a></li>
+        <li><a class="dropdown-item" href="{% url 'services:contract_add' %}"><i class="fas fa-file-contract me-1"></i> Новый договор</a></li>
+        <li><hr class="dropdown-divider"></li>
+        <li><a class="dropdown-item" href="{% url 'services:service_list' %}"><i class="fas fa-list me-1"></i> Все услуги</a></li>
+        <li><a class="dropdown-item" href="{% url 'services:payment_list' %}"><i class="fas fa-ruble-sign me-1"></i> Платежи</a></li>
+    </ul>
+</li>
+                    {% else %}
+                        <!-- Ссылки для пациентов -->
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'patient_portal:dashboard' %}">Личный кабинет</a>
+                        </li>
+                    {% endif %}
+                {% endif %}
+            </ul>
+            <ul class="navbar-nav ms-auto">
+                {% if user.is_authenticated %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            {{ user.get_full_name|default:user.username }}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                            {% if user.is_staff %}
+                            <li><a class="dropdown-item" href="/admin/">Администрирование</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            {% endif %}
+                            <li><a class="dropdown-item" href="{% url 'logout' %}">Выйти</a></li>
+                        </ul>
+                    </li>
+                {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'login' %}">Войти</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<main class="container mt-4">
+    {% block content %}
+    {% endblock %}
+</main>
+
+<footer class="container mt-5 py-3 text-center text-muted border-top">
+    <div class="row">
+        <div class="col-md-6 text-md-start">
+            <p class="mb-0">© 2025 StatReaMed. Все права защищены.</p>
+        </div>
+        <div class="col-md-6 text-md-end">
+            <p class="mb-0">Разработано: <a href="#" class="text-decoration-none">Zharkov Aleksandr</a></p>
+        </div>
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Toast notifications -->
+<div aria-live="polite" aria-atomic="true" class="position-fixed end-0 bottom-0 p-3" style="z-index: 1080; min-width: 300px;">
+  {% if messages %}
+    {% for message in messages %}
+      <div class="toast align-items-center text-bg-{{ message.tags|default:'info' }} border-0 mb-2" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="4000">
+        <div class="d-flex">
+          <div class="toast-body">
+            {{ message }}
+          </div>
+          <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Закрыть"></button>
+        </div>
+      </div>
+    {% endfor %}
+  {% endif %}
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    var toastElList = [].slice.call(document.querySelectorAll('.toast'));
+    toastElList.forEach(function(toastEl) {
+      var toast = new bootstrap.Toast(toastEl);
+      toast.show();
+    });
+  });
+</script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

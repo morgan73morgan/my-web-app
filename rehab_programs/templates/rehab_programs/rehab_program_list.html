@@ -1,0 +1,90 @@
+{% extends 'core/base.html' %}
+{% load static %}
+{% block content %}
+<div class="container mt-4">
+    <h2>Программы реабилитации</h2>
+    <button type="button" class="btn btn-success mb-3" id="openAddProgramModal"><i class="fas fa-plus"></i> Добавить программу</button>
+    <table class="table table-bordered table-striped">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Пациент</th>
+                <th>Тип</th>
+                <th>Ведущий специалист</th>
+                <th>Период</th>
+                <th>Статус</th>
+                <th>Действия</th>
+            </tr>
+        </thead>
+        <tbody id="programsTableBody">
+        {% for program in programs %}
+            {% include 'rehab_programs/program_row.html' with program=program %}
+        {% empty %}
+            <tr><td colspan="7">Нет программ</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% if is_paginated %}
+    <nav>
+      <ul class="pagination">
+        {% if page_obj.has_previous %}
+          <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Назад</a></li>
+        {% endif %}
+        <li class="page-item active"><span class="page-link">{{ page_obj.number }}</span></li>
+        {% if page_obj.has_next %}
+          <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Вперёд</a></li>
+        {% endif %}
+      </ul>
+    </nav>
+    {% endif %}
+</div>
+
+<!-- Модальное окно подтверждения удаления -->
+<div class="modal fade" id="deleteProgramModal" tabindex="-1" aria-labelledby="deleteProgramModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title" id="deleteProgramModalLabel"><i class="fas fa-exclamation-triangle me-2"></i>Подтверждение удаления</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+      </div>
+      <div class="modal-body">
+        <p>Вы уверены, что хотите удалить программу <strong id="deleteProgramName"></strong>?</p>
+      </div>
+      <div class="modal-footer">
+        <form id="deleteProgramForm" method="post" action="">
+          {% csrf_token %}
+          <input type="hidden" name="program_id" id="deleteProgramId">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+          <button type="submit" class="btn btn-danger">Удалить</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% include 'rehab_programs/program_create_modal.html' %}
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script src="{% static 'rehab_programs/program_delete.js' %}"></script>
+<script src="{% static 'rehab_programs/program_create_ajax.js' %}"></script>
+<script>
+    // Включение Bootstrap tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltipTriggerList.forEach(function (tooltipTriggerEl) {
+      new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+    // Динамическая установка action для формы удаления
+    document.addEventListener('DOMContentLoaded', function() {
+        var form = document.getElementById('deleteProgramForm');
+        document.getElementById('deleteProgramModal').addEventListener('show.bs.modal', function (event) {
+            var button = event.relatedTarget;
+            if (button) {
+                var programId = document.getElementById('deleteProgramId').value;
+                form.action = '/programs/' + programId + '/delete/';
+            }
+        });
+    });
+</script>
+{% endblock %}

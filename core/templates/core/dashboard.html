@@ -1,0 +1,315 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Панель управления{% endblock %}
+
+{% block extra_head %}
+{{ block.super }}
+<!-- Подключаем Font Awesome для иконок -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+    .dashboard-card {
+        border-radius: 15px;
+        color: white;
+        text-decoration: none;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        min-height: 150px;
+        position: relative;
+        overflow: hidden;
+    }
+    .dashboard-card:hover {
+        transform: translateY(-8px) scale(1.02);
+        box-shadow: 0 12px 24px rgba(0,0,0,0.25);
+        color: white;
+    }
+    .card-icon {
+        font-size: 3.2rem;
+        opacity: 0.6;
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        transition: opacity 0.3s, transform 0.3s ease;
+    }
+    .dashboard-card:hover .card-icon {
+        opacity: 0.9;
+        transform: scale(1.1);
+    }
+    .card-title-text {
+        font-size: 1.5rem;
+        font-weight: bold;
+    }
+    .bg-gradient-patients {
+        background: linear-gradient(45deg, #007bff, #0056b3);
+    }
+    .bg-gradient-calendar {
+        background: linear-gradient(45deg, #28a745, #1e7e34);
+    }
+    .bg-gradient-analytics {
+        background: linear-gradient(45deg, #ffc107, #d39e00);
+    }
+    .bg-gradient-inpatient {
+        background: linear-gradient(45deg, #17a2b8, #117a8b);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+{{ block.super }}
+<div class="container-fluid py-4">
+    <h1 class="h3 mb-4">Панель управления</h1>
+    
+    <div class="row g-4">
+        <!-- Upcoming Appointments -->
+        <div class="col-lg-4">
+            <div class="card h-100">
+                <div class="card-header bg-white">
+                    <h6 class="mb-0">Ближайшие записи</h6>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        {% for appt in services_stats.upcoming_appointments %}
+                        <a href="{% url 'services:appointment_detail' appt.id %}" class="list-group-item list-group-item-action">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">{{ appt.service.name }}</h6>
+                                <small class="text-muted">{{ appt.appointment_date|date:"H:i" }}</small>
+                            </div>
+                            <div class="d-flex w-100 justify-content-between">
+                                <p class="mb-1">{{ appt.client.get_full_name }}</p>
+                                <span class="badge bg-{{ appt.get_status_class }}">
+                                    {{ appt.get_status_display }}
+                                </span>
+                            </div>
+                            {% if appt.doctor %}
+                            <small class="text-muted">
+                                <i class="fas fa-user-md me-1"></i> {{ appt.doctor.get_short_name }}
+                            </small>
+                            {% endif %}
+                        </a>
+                        {% empty %}
+                        <div class="text-center py-4">
+                            <i class="far fa-calendar-alt fa-2x text-muted mb-2"></i>
+                            <p class="mb-0 text-muted">Нет предстоящих записей</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="card-footer bg-white text-center">
+                    <a href="{% url 'services:appointment_list' %}" class="btn btn-sm btn-outline-primary">
+                        <i class="far fa-list-alt me-1"></i> Все записи
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Recent Payments -->
+        <div class="col-lg-4">
+            <div class="card h-100">
+                <div class="card-header bg-white">
+                    <h6 class="mb-0">Последние платежи</h6>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        {% for payment in services_stats.recent_payments %}
+                        <div class="list-group-item">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">{{ payment.amount }} ₽</h6>
+                                <small class="text-muted">{{ payment.payment_date|date:"d.m.Y" }}</small>
+                            </div>
+                            <div class="d-flex w-100 justify-content-between">
+                                <p class="mb-1">
+                                    {% if payment.contract %}
+                                        {{ payment.contract.client.get_full_name }}
+                                    {% else %}
+                                        Без договора
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="list-group list-group-flush">
+                                {% for appt in services_stats.upcoming_appointments %}
+                                <a href="{% url 'services:appointment_detail' appt.id %}" class="list-group-item list-group-item-action">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1">{{ appt.service.name }}</h6>
+                                        <small class="text-muted">{{ appt.appointment_date|date:"H:i" }}</small>
+                                    </div>
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <p class="mb-1">{{ appt.client.get_full_name }}</p>
+                                        <span class="badge bg-{{ appt.get_status_class }}">
+                                            {{ appt.get_status_display }}
+                                        </span>
+                                    </div>
+                                    {% if appt.doctor %}
+                                    <small class="text-muted">
+                                        <i class="fas fa-user-md me-1"></i> {{ appt.doctor.get_short_name }}
+                                    </small>
+                                    {% endif %}
+                                </a>
+                                {% empty %}
+                                <div class="text-center py-4">
+                                    <i class="far fa-calendar-alt fa-2x text-muted mb-2"></i>
+                                    <p class="mb-0 text-muted">Нет предстоящих записей</p>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="card-footer bg-white text-center">
+                            <a href="{% url 'services:appointment_list' %}" class="btn btn-sm btn-outline-primary">
+                                <i class="far fa-list-alt me-1"></i> Все записи
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Recent Payments -->
+                <div class="col-lg-4">
+                    <div class="card h-100">
+                        <div class="card-header bg-white">
+                            <h6 class="mb-0">Последние платежи</h6>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="list-group list-group-flush">
+                                {% for payment in services_stats.recent_payments %}
+                                <div class="list-group-item">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1">{{ payment.amount }} ₽</h6>
+                                        <small class="text-muted">{{ payment.payment_date|date:"d.m.Y" }}</small>
+                                    </div>
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <p class="mb-1">
+                                            {% if payment.contract %}
+                                                {{ payment.contract.client.get_full_name }}
+                                            {% else %}
+                                                Без договора
+                                            {% endif %}
+                                        </p>
+                                        <span class="badge bg-{{ payment.get_status_class }}">
+                                            {{ payment.get_payment_method_display }}
+                                        </span>
+                                    </div>
+                                    <small class="text-muted">
+                                        <i class="far fa-credit-card me-1"></i> {{ payment.get_status_display }}
+                                    </small>
+                                </div>
+                                {% empty %}
+                                <div class="text-center py-4">
+                                    <i class="far fa-credit-card fa-2x text-muted mb-2"></i>
+                                    <p class="mb-0 text-muted">Нет данных о платежах</p>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="card-footer bg-white text-center">
+                            <a href="{% url 'services:payment_list' %}" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-list me-1"></i> Все платежи
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Top Services -->
+                <div class="col-lg-4">
+                    <div class="card h-100">
+                        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0">Популярные услуги</h6>
+                            <a href="{% url 'services:service_list' %}" class="btn btn-sm btn-outline-secondary btn-sm">
+                                <i class="fas fa-list"></i>
+                            </a>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="list-group list-group-flush">
+                                {% for service in services_stats.top_services %}
+                                <a href="{% url 'services:service_detail' service.id %}" class="list-group-item list-group-item-action">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1">{{ service.name }}</h6>
+                                        <span class="text-primary fw-bold">{{ service.total_revenue }} ₽</span>
+                                    </div>
+                                    {% with width=service.total_revenue|div:services_stats.total_revenue|mul:100|floatformat:0 %}
+                                    <div class="progress mt-2" style="height: 5px;">
+                                        <div class="progress-bar" 
+                                             role="progressbar" 
+                                             style="width: {{ width }}%"
+                                             aria-valuenow="{{ width }}" 
+                                             aria-valuemin="0" 
+                                             aria-valuemax="100">
+                                        </div>
+                                    </div>
+                                    {% endwith %}
+                                </a>
+                                {% empty %}
+                                <div class="text-center py-4">
+                                    <i class="fas fa-concierge-bell fa-2x text-muted mb-2"></i>
+                                    <p class="mb-0 text-muted">Нет данных об услугах</p>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <div class="row g-4 mb-4">
+        <!-- Карточка Платные услуги -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <a href="{% url 'services:dashboard' %}" class="dashboard-card bg-gradient-analytics p-3 shadow" style="background: linear-gradient(45deg, #ffc107, #ff9800); color: #fff;">
+                <div class="d-flex justify-content-between align-items-start">
+                    <span class="card-title-text">Платные услуги</span>
+                    <i class="fas fa-hand-holding-usd card-icon"></i>
+                </div>
+                <p class="mb-0">Модуль платных услуг</p>
+            </a>
+        </div>
+
+        <!-- Карточка Пациенты -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <a href="{% url 'core:patient_list' %}" class="dashboard-card bg-gradient-patients p-3 shadow">
+                <div class="d-flex justify-content-between align-items-start">
+                    <span class="card-title-text">Пациенты</span>
+                    <i class="fas fa-user-injured card-icon"></i>
+                </div>
+                <p class="mb-0">Управление картами пациентов</p>
+            </a>
+        </div>
+
+        <!-- Карточка Календарь -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <a href="{% url 'rehab_programs:calendar' %}" class="dashboard-card bg-gradient-calendar p-3 shadow">
+                <div class="d-flex justify-content-between align-items-start">
+                    <span class="card-title-text">Календарь</span>
+                    <i class="fas fa-calendar-check card-icon"></i>
+                </div>
+                <p class="mb-0">Просмотр расписания процедур</p>
+            </a>
+        </div>
+
+        <!-- Карточка Аналитика -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <a href="{% url 'analytics:dashboard' %}" class="dashboard-card bg-gradient-analytics p-3 shadow">
+                <div class="d-flex justify-content-between align-items-start">
+                    <span class="card-title-text">Аналитика</span>
+                    <i class="fas fa-chart-line card-icon"></i>
+                </div>
+                <p class="mb-0">Отчеты и статистика центра</p>
+            </a>
+        </div>
+
+        <!-- Карточка Стационар -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <a href="{% url 'inpatient:dashboard' %}" class="dashboard-card bg-gradient-inpatient p-3 shadow">
+                <div class="d-flex justify-content-between align-items-start">
+                    <span class="card-title-text">Стационар</span>
+                    <i class="fas fa-hospital card-icon"></i>
+                </div>
+                <p class="mb-0">Управление коечным фондом</p>
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

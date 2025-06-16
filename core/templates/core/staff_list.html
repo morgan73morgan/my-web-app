@@ -1,0 +1,60 @@
+{% extends 'core/base_dashboard.html' %}
+{% block title %}Сотрудники{% endblock %}
+
+{% block page_title %}
+<div class="d-flex justify-content-between align-items-center">
+    <h1>Сотрудники</h1>
+    <a href="{% url 'core:staff_create' %}" class="btn btn-success">
+        <i class="fas fa-plus"></i> Добавить сотрудника
+    </a>
+</div>
+{% endblock %}
+
+{% block page_content %}
+<table class="table table-bordered table-hover">
+    <thead class="table-light">
+        <tr>
+            <th>ФИО</th>
+            <th>Должность</th>
+            <th>Отдел</th>
+            <th>Email</th>
+            <th>Телефон</th>
+            <th>Статус</th>
+            <th>Дата приёма</th>
+            <th>Действия</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for staff in staff_list %}
+        <tr>
+            <td>{{ staff.last_name }} {{ staff.first_name }} {{ staff.middle_name }}</td>
+            <td>{{ staff.position }}</td>
+            <td>{{ staff.department }}</td>
+            <td>{{ staff.email }}</td>
+            <td>{{ staff.phone }}</td>
+            <td>{{ staff.get_status_display }}</td>
+            <td>{{ staff.hire_date|date:'d.m.Y' }}</td>
+            <td>
+                <a href="{% url 'core:staff_update' staff.pk %}" class="btn btn-sm btn-primary"><i class="fas fa-edit"></i></a>
+                <a href="{% url 'core:staff_delete' staff.pk %}" class="btn btn-sm btn-danger"><i class="fas fa-trash"></i></a>
+            </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="8" class="text-center">Нет сотрудников</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+<nav>
+    <ul class="pagination">
+        {% if staff_list.has_previous %}
+            <li class="page-item"><a class="page-link" href="?page={{ staff_list.previous_page_number }}">&laquo;</a></li>
+        {% endif %}
+        {% for num in staff_list.paginator.page_range %}
+            <li class="page-item {% if staff_list.number == num %}active{% endif %}"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
+        {% endfor %}
+        {% if staff_list.has_next %}
+            <li class="page-item"><a class="page-link" href="?page={{ staff_list.next_page_number }}">&raquo;</a></li>
+        {% endif %}
+    </ul>
+</nav>
+{% endblock %}
